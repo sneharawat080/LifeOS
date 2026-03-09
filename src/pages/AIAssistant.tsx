@@ -1,6 +1,11 @@
 import { motion } from "framer-motion";
 import { Bot, Send, Sparkles, Heart, Briefcase, Zap } from "lucide-react";
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProfile, useHealthProfile, useCareerProfile } from "@/hooks/useProfile";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   id: number;
@@ -14,34 +19,73 @@ const suggestions = [
   { icon: Zap, label: "Help me plan my day", color: "gradient-purple" },
 ];
 
-const mockResponses: Record<string, string> = {
-  default: "I'm your AI life coach! I can help with diet plans, workout recommendations, career guidance, and productivity tips. What would you like to work on today?",
-  eat: "Based on your health profile and goals, here's what I recommend for today:\n\n🥣 **Breakfast**: Overnight oats with chia seeds, berries, and almond butter (380 cal)\n\n🥗 **Lunch**: Grilled chicken breast with quinoa and roasted vegetables (520 cal)\n\n🍎 **Snack**: Greek yogurt with walnuts and honey (220 cal)\n\n🐟 **Dinner**: Baked salmon with sweet potato and steamed broccoli (580 cal)\n\nThis gives you ~1,700 calories with a good macro balance. Stay hydrated with 8 glasses of water!",
-  career: "Looking at your career profile, here are my top recommendations:\n\n1. **Continue ML coursework** — You're in Stage 3 of your roadmap. Focus on completing the supervised learning module this week.\n\n2. **Build a portfolio project** — Start a small data science project on Kaggle to practice.\n\n3. **Network** — Connect with 3 data scientists on LinkedIn this week.\n\n4. **Skill gap** — Your AWS skills are at 55%. Consider taking an introductory cloud course.\n\nWould you like me to create a detailed weekly plan?",
-  plan: "Here's an optimized day plan based on your habits and goals:\n\n⏰ **7:00** — Morning routine + meditation (15 min)\n📚 **8:00** — Deep learning: ML coursework (2 hrs)\n☕ **10:00** — Break + healthy snack\n💼 **10:30** — Work tasks (high priority first)\n🥗 **12:30** — Lunch break + walk\n💻 **14:00** — Deep work block\n🏋️ **16:00** — Workout (45 min)\n📖 **17:30** — Reading time (30 min)\n🧘 **18:30** — Evening meditation\n📝 **19:00** — Journal & plan tomorrow\n\nThis schedule maximizes your energy peaks. Want me to adjust anything?",
-};
-
 export default function AIAssistant() {
+  const { user } = useAuth();
+  const { data: profile } = useProfile();
+  const { data: healthProfile } = useHealthProfile();
+  const { data: careerProfile } = useCareerProfile();
+  const { toast } = useToast();
+
   const [messages, setMessages] = useState<Message[]>([
-    { id: 0, role: "assistant", content: "Hi Alex! 👋 I'm your AI life coach. I can help you with diet, fitness, career planning, and productivity. What can I help you with today?" },
+    { id: 0, role: "assistant", content: `Hi ${profile?.name || "there"}! 👋 I'm your AI life coach. I can help you with diet, fitness, career planning, and productivity. What can I help you with today?` },
   ]);
   const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const sendMessage = (text: string) => {
-    if (!text.trim()) return;
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || isLoading) return;
     const userMsg: Message = { id: Date.now(), role: "user", content: text };
-    setMessages(prev => [...prev, userMsg]);
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
     setInput("");
+    setIsLoading(true);
 
-    setTimeout(() => {
-      let response = mockResponses.default;
+    try {
+      // Build context
+      const userContext = [
+        profile?.name ? `User name: ${profile.name}` : "",
+        profile?.age ? `Age: ${profile.age}` : "",
+        profile?.weight_kg ? `Weight: ${profile.weight_kg}kg` : "",
+        profile?.height_cm ? `Height: ${profile.height_cm}cm` : "",
+        profile?.bmi ? `BMI: ${profile.bmi}` : "",
+        healthProfile?.diet_preference ? `Diet preference: ${healthProfile.diet_preference}` : "",
+        healthProfile?.activity_level ? `Activity level: ${healthProfile.activity_level}` : "",
+        healthProfile?.target_weight ? `Target weight: ${healthProfile.target_weight}kg` : "",
+        healthProfile?.diseases?.length ? `Health conditions: ${healthProfile.diseases.join(", ")}` : "",
+        healthProfile?.allergies?.length ? `Allergies: ${healthProfile.allergies.join(", ")}` : "",
+        careerProfile?.profession ? `Profession: ${careerProfile.profession}` : "",
+        careerProfile?.skills?.length ? `Skills: ${careerProfile.skills.join(", ")}` : "",
+        careerProfile?.career_goals?.length ? `Career goals: ${careerProfile.career_goals.join(", ")}` : "",
+      ].filter(Boolean).join("\n");
+
+      const chatMessages = newMessages.map(m => ({ role: m.role, content: m.content }));
+
+      const { data, error } = await supabase.functions.invoke("ai-chat", {
+        body: { messages: chatMessages, userContext },
+      });
+
+      if (error) throw error;
+
+      const reply = data?.reply || "I'm sorry, I couldn't generate a response right now. Please try again.";
+      setMessages(prev => [...prev, { id: Date.now() + 1, role: "assistant", content: reply }]);
+    } catch (err: any) {
+      console.error("AI error:", err);
+      // Fallback to basic response
+      const fallbackResponses: Record<string, string> = {
+        eat: `Based on your profile, here's a suggested meal plan:\n\n🥣 **Breakfast**: Oatmeal with berries & nuts\n🥗 **Lunch**: Grilled chicken salad with quinoa\n🍎 **Snack**: Greek yogurt & almonds\n🐟 **Dinner**: Baked salmon with sweet potato\n\nStay hydrated with 8 glasses of water!`,
+        career: `Looking at your career goals, I recommend:\n\n1. **Focus on skill development** — Pick one key skill to improve this week\n2. **Network** — Connect with 3 professionals in your industry\n3. **Build projects** — Apply what you're learning\n\nConsistency is key!`,
+        plan: `Here's an optimized day plan:\n\n⏰ **7:00** — Morning routine + meditation\n📚 **8:00** — Deep learning block (2 hrs)\n💼 **10:00** — Work tasks (high priority first)\n🥗 **12:30** — Lunch & walk\n💻 **14:00** — Deep work block\n🏋️ **16:00** — Workout (45 min)\n📖 **17:30** — Reading time\n📝 **19:00** — Journal & plan tomorrow`,
+      };
       const lower = text.toLowerCase();
-      if (lower.includes("eat") || lower.includes("diet") || lower.includes("food") || lower.includes("meal")) response = mockResponses.eat;
-      else if (lower.includes("career") || lower.includes("job") || lower.includes("skill")) response = mockResponses.career;
-      else if (lower.includes("plan") || lower.includes("day") || lower.includes("schedule")) response = mockResponses.plan;
+      let response = "I'm your AI life coach! I can help with diet, workout, career, and productivity tips. What would you like to work on?";
+      if (lower.includes("eat") || lower.includes("diet") || lower.includes("food")) response = fallbackResponses.eat;
+      else if (lower.includes("career") || lower.includes("job") || lower.includes("skill")) response = fallbackResponses.career;
+      else if (lower.includes("plan") || lower.includes("day") || lower.includes("schedule")) response = fallbackResponses.plan;
 
       setMessages(prev => [...prev, { id: Date.now() + 1, role: "assistant", content: response }]);
-    }, 800);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -51,7 +95,6 @@ export default function AIAssistant() {
         <p className="page-subtitle mt-1">Your personal AI assistant for health, career & productivity</p>
       </motion.div>
 
-      {/* Chat Area */}
       <div className="flex-1 overflow-auto space-y-4 pb-4">
         {messages.map((msg) => (
           <motion.div
@@ -61,9 +104,7 @@ export default function AIAssistant() {
             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-              msg.role === "user"
-                ? "bg-primary text-primary-foreground"
-                : "glass-card"
+              msg.role === "user" ? "bg-primary text-primary-foreground" : "glass-card"
             }`}>
               {msg.role === "assistant" && (
                 <div className="flex items-center gap-2 mb-2">
@@ -73,19 +114,28 @@ export default function AIAssistant() {
                   <span className="text-xs font-semibold text-foreground">LifeOS AI</span>
                 </div>
               )}
-              <div className="text-sm whitespace-pre-line leading-relaxed">
-                {msg.content.split("**").map((part, i) =>
-                  i % 2 === 1 ? <strong key={i} className="font-semibold">{part}</strong> : part
-                )}
+              <div className="text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert">
+                <ReactMarkdown>{msg.content}</ReactMarkdown>
               </div>
             </div>
           </motion.div>
         ))}
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="glass-card rounded-2xl px-4 py-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full gradient-emerald">
+                  <Sparkles className="h-3 w-3 text-primary-foreground" />
+                </div>
+                <span className="text-xs text-muted-foreground animate-pulse">Thinking...</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Suggestions */}
       {messages.length <= 1 && (
-        <div className="flex gap-2 mb-3 shrink-0">
+        <div className="flex gap-2 mb-3 shrink-0 flex-wrap">
           {suggestions.map((s) => (
             <button
               key={s.label}
@@ -99,18 +149,19 @@ export default function AIAssistant() {
         </div>
       )}
 
-      {/* Input */}
       <div className="shrink-0 flex items-center gap-2">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && sendMessage(input)}
           placeholder="Ask your AI coach anything..."
-          className="flex-1 rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          disabled={isLoading}
+          className="flex-1 rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         />
         <button
           onClick={() => sendMessage(input)}
-          className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+          disabled={isLoading}
+          className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
         >
           <Send className="h-4 w-4" />
         </button>
