@@ -1,15 +1,17 @@
 import { motion } from "framer-motion";
-import { User, Bell, Shield, LogOut, Palette } from "lucide-react";
+import { User, LogOut, Moon, Sun, Monitor } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/hooks/useTheme";
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
   const { data: profile } = useProfile();
   const updateProfile = useUpdateProfile();
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
   const [name, setName] = useState(profile?.name || "");
 
   const handleSaveName = async () => {
@@ -67,6 +69,36 @@ export default function SettingsPage() {
             <span className="text-sm text-muted-foreground">BMI</span>
             <span className="text-sm font-medium text-foreground">{profile?.bmi || "—"}</span>
           </div>
+        </div>
+      </motion.div>
+
+      {/* Appearance */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="glass-card p-5">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+            {theme === "dark" ? <Moon className="h-4 w-4 text-primary" /> : <Sun className="h-4 w-4 text-primary" />}
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Appearance</p>
+            <p className="text-xs text-muted-foreground">Choose your preferred theme</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          {([
+            { value: "light" as const, icon: Sun, label: "Light" },
+            { value: "dark" as const, icon: Moon, label: "Dark" },
+          ]).map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setTheme(opt.value)}
+              className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition-all ${
+                theme === opt.value ? "border-primary bg-primary/5" : "border-border hover:bg-muted/30"
+              }`}
+            >
+              <opt.icon className={`h-5 w-5 ${theme === opt.value ? "text-primary" : "text-muted-foreground"}`} />
+              <span className={`text-xs font-medium ${theme === opt.value ? "text-primary" : "text-muted-foreground"}`}>{opt.label}</span>
+            </button>
+          ))}
         </div>
       </motion.div>
 

@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
-import { BarChart3, Download, TrendingUp, TrendingDown } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts";
+import { BarChart3, Download, TrendingUp, TrendingDown, FileText } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { EmptyState } from "@/components/EmptyState";
-import { useDailyHealthLogs, useTasks, useHabits, useHabitLogs, useDailyCareerLogs, useDailyProductivityLogs } from "@/hooks/useData";
+import { useDailyHealthLogs, useTasks, useHabits, useHabitLogs, useDailyCareerLogs } from "@/hooks/useData";
+import { useProfile, useHealthProfile, useCareerProfile } from "@/hooks/useProfile";
+import { generateHealthReport, generateCareerReport, generateProductivityReport } from "@/lib/reports";
 
 export default function Analytics() {
   const { data: healthLogs } = useDailyHealthLogs(30);
@@ -10,6 +12,9 @@ export default function Analytics() {
   const { data: habits } = useHabits();
   const { data: habitLogs } = useHabitLogs(30);
   const { data: careerLogs } = useDailyCareerLogs(30);
+  const { data: profile } = useProfile();
+  const { data: healthProfile } = useHealthProfile();
+  const { data: careerProfile } = useCareerProfile();
 
   const hasData = (healthLogs && healthLogs.length > 0) || (tasks && tasks.length > 0);
 
@@ -56,14 +61,34 @@ export default function Analytics() {
 
   return (
     <div className="space-y-8">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-start justify-between">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <h1 className="page-header">Analytics</h1>
           <p className="page-subtitle mt-1">Detailed reports and insights</p>
         </div>
-        <button onClick={handleExportCSV} className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors">
-          <Download className="h-4 w-4" /> Export CSV
-        </button>
+        <div className="flex gap-2 flex-wrap">
+          <button onClick={handleExportCSV} className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors">
+            <Download className="h-4 w-4" /> CSV
+          </button>
+          <button
+            onClick={() => generateHealthReport(profile, healthProfile, healthLogs || [])}
+            className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+          >
+            <FileText className="h-4 w-4" /> Health PDF
+          </button>
+          <button
+            onClick={() => generateCareerReport(careerProfile, careerLogs || [])}
+            className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+          >
+            <FileText className="h-4 w-4" /> Career PDF
+          </button>
+          <button
+            onClick={() => generateProductivityReport(tasks || [], habits || [], habitLogs || [])}
+            className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+          >
+            <FileText className="h-4 w-4" /> Productivity PDF
+          </button>
+        </div>
       </motion.div>
 
       {!hasData ? (
