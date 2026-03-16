@@ -1,1 +1,13 @@
 project_id = "vpxtnfcdborswbigdfyk"
+
+[functions.generate-roadmap]
+verify_jwt = false
+
+[functions.generate-diet]
+verify_jwt = false
+
+[functions.analyze-resume]
+verify_jwt = false
+
+[functions.ai-chat]
+verify_jwt = false

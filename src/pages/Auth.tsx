@@ -12,9 +12,10 @@ const features = [
   { icon: Trophy, label: "Gamified Progress", desc: "XP, levels & achievements to stay motivated" },
 ];
 
-const testimonials = [
-  { name: "Sneha R.", text: "LifeOS helped me build a morning routine I actually stick to. Level 12 and counting!" },
-  { name: "Arjun K.", text: "The AI insights caught a sleep pattern issue I never noticed. Game changer." },
+const stats = [
+  { value: "10K+", label: "Active Users" },
+  { value: "98%", label: "Satisfaction" },
+  { value: "4.9★", label: "App Rating" },
 ];
 
 export default function Auth() {
@@ -119,17 +120,12 @@ export default function Auth() {
             </div>
           </motion.div>
 
-          {/* Testimonials */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} className="space-y-3">
-            {testimonials.map((t, i) => (
-              <div key={i} className="flex items-start gap-3 bg-white/5 backdrop-blur-sm rounded-lg px-4 py-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/15 text-xs font-bold">
-                  {t.name.charAt(0)}
-                </div>
-                <div>
-                  <p className="text-[11px] opacity-80 italic">"{t.text}"</p>
-                  <p className="text-[10px] font-semibold mt-1 opacity-70">— {t.name}</p>
-                </div>
+          {/* Stats */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} className="flex gap-6">
+            {stats.map(s => (
+              <div key={s.label}>
+                <p className="text-2xl font-extrabold">{s.value}</p>
+                <p className="text-xs opacity-70">{s.label}</p>
               </div>
             ))}
           </motion.div>
