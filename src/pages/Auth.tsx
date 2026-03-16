@@ -1,12 +1,24 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Sparkles, Mail, Lock, User, ArrowRight, Eye, EyeOff, Shield, Zap, Heart, BarChart3 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, Mail, Lock, User, ArrowRight, Eye, EyeOff, Shield, Zap, Heart, BarChart3, Trophy, Brain, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useToast } from "@/hooks/use-toast";
 
+const features = [
+  { icon: Heart, label: "Health Tracking", desc: "Monitor sleep, nutrition, fitness & weight goals" },
+  { icon: Zap, label: "Smart Productivity", desc: "Tasks, habits, focus sessions & streaks" },
+  { icon: Brain, label: "AI Life Coach", desc: "Personalized advice powered by your data" },
+  { icon: Trophy, label: "Gamified Progress", desc: "XP, levels & achievements to stay motivated" },
+];
+
+const testimonials = [
+  { name: "Sneha R.", text: "LifeOS helped me build a morning routine I actually stick to. Level 12 and counting!" },
+  { name: "Arjun K.", text: "The AI insights caught a sleep pattern issue I never noticed. Game changer." },
+];
+
 export default function Auth() {
-  const [mode, setMode] = useState<"login" | "signup" | "reset">("login");
+  const [mode, setMode] = useState<"login" | "signup" | "reset">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -60,76 +72,93 @@ export default function Auth() {
     }
   };
 
-  const features = [
-    { icon: Heart, label: "Health Tracking", desc: "Monitor wellness daily" },
-    { icon: Zap, label: "Smart Productivity", desc: "Tasks, habits & focus" },
-    { icon: BarChart3, label: "AI Insights", desc: "Personalized coaching" },
-  ];
-
   return (
     <div className="min-h-screen flex bg-background">
-      {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-        <div className="absolute inset-0 gradient-emerald opacity-90" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_70%)]" />
-        <div className="relative z-10 flex flex-col justify-center px-16 text-primary-foreground">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <div className="flex items-center gap-3 mb-8">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-foreground/20 backdrop-blur-sm">
-                <Sparkles className="h-6 w-6" />
-              </div>
-              <span className="text-3xl font-bold tracking-tight">LifeOS</span>
+      {/* Left Panel - Rich Branding */}
+      <div className="hidden lg:flex lg:w-[55%] relative overflow-hidden">
+        <div className="absolute inset-0 gradient-emerald opacity-95" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_80%,rgba(255,255,255,0.15),transparent_60%)]" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-white/5 rounded-full translate-y-1/3 -translate-x-1/4 blur-3xl" />
+
+        <div className="relative z-10 flex flex-col justify-between px-14 py-12 text-primary-foreground w-full">
+          {/* Logo */}
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
+              <Sparkles className="h-5 w-5" />
             </div>
-            <h1 className="text-4xl font-bold leading-tight mb-4">
-              Your Intelligent<br />Life Management<br />Platform
+            <span className="text-2xl font-bold tracking-tight">LifeOS</span>
+          </motion.div>
+
+          {/* Hero */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+            <h1 className="text-4xl font-extrabold leading-[1.15] mb-4 max-w-lg">
+              Your Life,<br />Optimized by AI<br />& Gamified.
             </h1>
-            <p className="text-lg opacity-90 mb-10 max-w-md">
-              Track health, boost productivity, grow your career — all powered by AI insights personalized to you.
+            <p className="text-base opacity-90 mb-8 max-w-md leading-relaxed">
+              Track health, boost productivity, grow your career — all powered by AI insights personalized to you. Earn XP and level up as you improve.
             </p>
-            <div className="space-y-4">
+
+            {/* Feature Pills */}
+            <div className="grid grid-cols-2 gap-3 mb-10">
               {features.map((f, i) => (
                 <motion.div
                   key={f.label}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 + i * 0.1 }}
-                  className="flex items-center gap-4 bg-primary-foreground/10 backdrop-blur-sm rounded-xl px-4 py-3"
+                  transition={{ delay: 0.3 + i * 0.08 }}
+                  className="flex items-start gap-3 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3"
                 >
-                  <f.icon className="h-5 w-5 shrink-0" />
+                  <f.icon className="h-5 w-5 shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold text-sm">{f.label}</p>
-                    <p className="text-xs opacity-80">{f.desc}</p>
+                    <p className="text-[11px] opacity-80 leading-snug">{f.desc}</p>
                   </div>
                 </motion.div>
               ))}
             </div>
+          </motion.div>
+
+          {/* Testimonials */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} className="space-y-3">
+            {testimonials.map((t, i) => (
+              <div key={i} className="flex items-start gap-3 bg-white/5 backdrop-blur-sm rounded-lg px-4 py-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/15 text-xs font-bold">
+                  {t.name.charAt(0)}
+                </div>
+                <div>
+                  <p className="text-[11px] opacity-80 italic">"{t.text}"</p>
+                  <p className="text-[10px] font-semibold mt-1 opacity-70">— {t.name}</p>
+                </div>
+              </div>
+            ))}
           </motion.div>
         </div>
       </div>
 
       {/* Right Panel - Auth Form */}
       <div className="flex-1 flex items-center justify-center p-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-8">
             <div className="flex h-14 w-14 mx-auto items-center justify-center rounded-2xl gradient-emerald mb-4">
               <Sparkles className="h-7 w-7 text-primary-foreground" />
             </div>
             <h1 className="text-3xl font-bold text-foreground">LifeOS</h1>
-            <p className="text-muted-foreground mt-1">Your intelligent life management platform</p>
+            <p className="text-muted-foreground mt-1 text-sm">Your intelligent life management platform</p>
           </div>
 
           <div className="glass-card p-8">
-            <h2 className="text-xl font-bold text-foreground mb-1">
-              {mode === "login" ? "Welcome back" : mode === "signup" ? "Create your account" : "Reset password"}
-            </h2>
-            <p className="text-sm text-muted-foreground mb-6">
-              {mode === "login" ? "Sign in to continue your journey" : mode === "signup" ? "Start your personalized life optimization" : "We'll send you a reset link"}
-            </p>
+            <AnimatePresence mode="wait">
+              <motion.div key={mode} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
+                <h2 className="text-xl font-bold text-foreground mb-1">
+                  {mode === "login" ? "Welcome back" : mode === "signup" ? "Create your free account" : "Reset password"}
+                </h2>
+                <p className="text-sm text-muted-foreground mb-6">
+                  {mode === "login" ? "Sign in to continue your journey" : mode === "signup" ? "Join thousands optimizing their lives" : "We'll send you a reset link"}
+                </p>
+              </motion.div>
+            </AnimatePresence>
 
             {/* Google Sign In */}
             {mode !== "reset" && (
@@ -180,7 +209,7 @@ export default function Auth() {
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input
                     type={showPassword ? "text" : "password"}
-                    placeholder="Password"
+                    placeholder={mode === "signup" ? "Create a password (min 6 chars)" : "Password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full rounded-xl border border-border bg-card pl-11 pr-11 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow"
@@ -214,7 +243,7 @@ export default function Auth() {
                   <div className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                 ) : (
                   <>
-                    {mode === "login" ? "Sign in" : mode === "signup" ? "Create account" : "Send reset link"}
+                    {mode === "login" ? "Sign in" : mode === "signup" ? "Create free account" : "Send reset link"}
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}
@@ -224,9 +253,24 @@ export default function Auth() {
             {mode === "signup" && (
               <div className="mt-4 flex items-start gap-2 rounded-lg bg-muted/50 p-3">
                 <Shield className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-[11px] text-muted-foreground leading-snug">
                   A verification email will be sent to confirm your account. Check your inbox (and spam folder) after signing up.
                 </p>
+              </div>
+            )}
+
+            {mode === "signup" && (
+              <div className="mt-3 flex items-center gap-4 justify-center">
+                {[
+                  { icon: CheckCircle2, text: "Free forever" },
+                  { icon: Shield, text: "Secure & private" },
+                  { icon: Zap, text: "AI powered" },
+                ].map(b => (
+                  <div key={b.text} className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <b.icon className="h-3 w-3 text-primary" />
+                    <span>{b.text}</span>
+                  </div>
+                ))}
               </div>
             )}
 
