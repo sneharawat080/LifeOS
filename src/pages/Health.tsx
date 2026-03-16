@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
-import { Heart, Droplets, Footprints, Moon, Activity, Apple, Brain, Plus } from "lucide-react";
+import { Heart, Droplets, Footprints, Moon, Activity, Brain, Plus } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { EmptyState } from "@/components/EmptyState";
 import { DailyCheckIn } from "@/components/DailyCheckIn";
+import { DietChart } from "@/components/health/DietChart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadialBarChart, RadialBar } from "recharts";
 import { useProfile, useHealthProfile } from "@/hooks/useProfile";
 import { useDailyHealthLogs, useTodayHealthLog, useTodayMoodLog } from "@/hooks/useData";
@@ -109,6 +110,9 @@ export default function Health() {
               ))}
             </div>
           </motion.div>
+
+          {/* Personalized Diet Plan */}
+          <DietChart profile={profile} healthProfile={healthProfile} />
         </>
       )}
 
