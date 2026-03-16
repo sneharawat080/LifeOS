@@ -12,9 +12,10 @@ const features = [
   { icon: Trophy, label: "Gamified Progress", desc: "XP, levels & achievements to stay motivated" },
 ];
 
-const testimonials = [
-  { name: "Sneha R.", text: "LifeOS helped me build a morning routine I actually stick to. Level 12 and counting!" },
-  { name: "Arjun K.", text: "The AI insights caught a sleep pattern issue I never noticed. Game changer." },
+const stats = [
+  { value: "10K+", label: "Active Users" },
+  { value: "98%", label: "Satisfaction" },
+  { value: "4.9★", label: "App Rating" },
 ];
 
 export default function Auth() {
